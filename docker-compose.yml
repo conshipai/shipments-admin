@@ -5,9 +5,6 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-      args:
-        - NODE_ENV=production
-        - API_URL=${API_URL:-https://api.gcc.conship.ai}
     container_name: shipments-admin
     ports:
       - "3002:3002"
@@ -18,14 +15,33 @@ services:
       - PUBLIC_URL=${PUBLIC_URL:-https://shipments-admin.gcc.conship.ai}
     restart: unless-stopped
     networks:
-      - conship-network
+      - coolify
     labels:
       - "traefik.enable=true"
+      - "traefik.http.middlewares.gzip.compress=true"
+      - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
+      - "traefik.http.routers.shipments-admin.entryPoints=http,https"
       - "traefik.http.routers.shipments-admin.rule=Host(`shipments-admin.gcc.conship.ai`)"
-      - "traefik.http.routers.shipments-admin.entrypoints=websecure"
-      - "traefik.http.routers.shipments-admin.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.shipments-admin.middlewares=gzip,redirect-to-https"
+      - "traefik.http.routers.shipments-admin.service=shipments-admin"
       - "traefik.http.services.shipments-admin.loadbalancer.server.port=3002"
+      - "traefik.http.routers.shipments-admin.tls=true"
+      - "traefik.http.routers.shipments-admin.tls.certresolver=letsencrypt"
+      # CORS for Module Federation
+      - "traefik.http.middlewares.cors.headers.accesscontrolallowmethods=GET,OPTIONS,PUT,POST,DELETE"
+      - "traefik.http.middlewares.cors.headers.accesscontrolallowheaders=*"
+      - "traefik.http.middlewares.cors.headers.accesscontrolalloworiginlist=*"
+      - "traefik.http.middlewares.cors.headers.accesscontrolmaxage=100"
+      - "traefik.http.middlewares.cors.headers.addvaryheader=true"
+      # Caddy labels
+      - "caddy_0.encode=zstd gzip"
+      - "caddy_0.handle_path.0_reverse_proxy={{upstreams 3002}}"
+      - "caddy_0.handle_path=/*"
+      - "caddy_0.header=-Server"
+      - "caddy_0.try_files={path} /index.html"
+      - "caddy_0=https://shipments-admin.gcc.conship.ai"
+      - "caddy_ingress_network=coolify"
 
 networks:
-  conship-network:
+  coolify:
     external: true
