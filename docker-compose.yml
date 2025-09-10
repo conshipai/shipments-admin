@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  shipments-admin:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - NODE_ENV=production
+        - API_URL=${API_URL:-https://api.gcc.conship.ai}
+    container_name: shipments-admin
+    ports:
+      - "3002:3002"
+    environment:
+      - NODE_ENV=production
+      - API_URL=${API_URL:-https://api.gcc.conship.ai}
+      - SHELL_URL=${SHELL_URL:-https://shell.gcc.conship.ai}
+      - PUBLIC_URL=${PUBLIC_URL:-https://shipments-admin.gcc.conship.ai}
+    restart: unless-stopped
+    networks:
+      - conship-network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.shipments-admin.rule=Host(`shipments-admin.gcc.conship.ai`)"
+      - "traefik.http.routers.shipments-admin.entrypoints=websecure"
+      - "traefik.http.routers.shipments-admin.tls.certresolver=letsencrypt"
+      - "traefik.http.services.shipments-admin.loadbalancer.server.port=3002"
+
+networks:
+  conship-network:
+    external: true
