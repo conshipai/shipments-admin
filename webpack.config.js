@@ -1,121 +1,94 @@
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const ModuleFederationPlugin = require('webpack/lib/container/ModuleFederationPlugin');
 const path = require('path');
-const deps = require('./package.json').dependencies;
 
 module.exports = (env, argv) => {
   const isProduction = argv.mode === 'production';
-  const publicUrl = process.env.PUBLIC_URL || 'https://shipments-admin.gcc.conship.ai';
-  
+  const publicUrl = isProduction 
+    ? 'https://shipments-admin.gcc.conship.ai/' 
+    : 'http://localhost:3002/';
+
   return {
     mode: isProduction ? 'production' : 'development',
     entry: './src/index.js',
     output: {
+      filename: '[name].js',
       path: path.resolve(__dirname, 'dist'),
-      filename: '[name].[contenthash].js',
-      publicPath: isProduction ? `${publicUrl}/` : 'http://localhost:3002/',
-      clean: true
+      publicPath: publicUrl,
+      // NO library or libraryTarget - Module Federation handles this
     },
-    
     resolve: {
-      extensions: ['.jsx', '.js', '.json'],
+      extensions: ['.jsx', '.js'],
     },
-    
     module: {
       rules: [
         {
-          test: /\.(js|jsx)$/,
+          test: /\.jsx?$/,
           exclude: /node_modules/,
           use: {
             loader: 'babel-loader',
             options: {
-              presets: ['@babel/preset-env', '@babel/preset-react']
+              presets: ['@babel/preset-react', '@babel/preset-env']
             }
           }
         },
         {
           test: /\.css$/,
-          use: [
-            'style-loader',
-            'css-loader',
-            'postcss-loader'
-          ]
+          use: ['style-loader', 'css-loader', 'postcss-loader']
         },
         {
-          test: /\.(png|svg|jpg|jpeg|gif)$/i,
+          test: /\.(png|jpg|jpeg|gif|svg|webp|ico)$/i,
           type: 'asset/resource',
-        },
-        {
-          test: /\.(woff|woff2|eot|ttf|otf)$/i,
-          type: 'asset/resource',
+          generator: {
+            filename: 'images/[name].[hash][ext]'
+          }
         }
       ]
     },
-    
     plugins: [
       new ModuleFederationPlugin({
         name: 'shipmentsAdmin',
         filename: 'remoteEntry.js',
         exposes: {
-          './App': './src/App.jsx',
+          './App': './src/App'
         },
         shared: {
-          react: {
+          react: { 
             singleton: true,
-            requiredVersion: deps.react,
-            eager: true
+            requiredVersion: '^18.0.0'
           },
-          'react-dom': {
+          'react-dom': { 
             singleton: true,
-            requiredVersion: deps['react-dom'],
-            eager: true
+            requiredVersion: '^18.0.0'
           },
-          'react-router-dom': {
+          'react-router-dom': { 
             singleton: true,
-            requiredVersion: deps['react-router-dom']
+            requiredVersion: '^6.0.0'
+          },
+          axios: {
+            singleton: true,
+            requiredVersion: '^1.6.0'
+          },
+          'lucide-react': {
+            singleton: true,
+            requiredVersion: '^0.294.0'
           }
         }
       }),
-      
       new HtmlWebpackPlugin({
         template: './public/index.html'
       })
     ],
-    
-    devServer: {
+    devServer: isProduction ? undefined : {
       port: 3002,
       host: '0.0.0.0',
+      hot: true,
       historyApiFallback: true,
-      allowedHosts: 'all',
       headers: {
         'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, PATCH, OPTIONS',
-        'Access-Control-Allow-Headers': 'X-Requested-With, content-type, Authorization',
-        'Access-Control-Expose-Headers': 'Content-Length, Content-Range'
-      },
-      hot: true,
-      client: {
-        webSocketURL: 'auto://0.0.0.0:0/ws'
+        'Access-Control-Allow-Headers': 'X-Requested-With, content-type, Authorization'
       }
-    },
-    
-    optimization: {
-      splitChunks: {
-        chunks: 'all',
-        cacheGroups: {
-          vendor: {
-            test: /[\\/]node_modules[\\/]/,
-            name: 'vendors',
-            priority: 10
-          }
-        }
-      }
-    },
-    
-    performance: {
-      hints: isProduction ? 'warning' : false,
-      maxEntrypointSize: 512000,
-      maxAssetSize: 512000
     }
   };
 };
