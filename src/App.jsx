@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import BookingList from './components/BookingReview/BookingList';
 
 const App = ({ shellContext, basename }) => {
   const [currentView, setCurrentView] = useState('bookings');
@@ -52,13 +53,7 @@ const App = ({ shellContext, basename }) => {
         </div>
         
         {/* Content based on current view */}
-        {currentView === 'bookings' && (
-          <div className="p-4 border rounded-lg">
-            <h2 className="text-lg font-semibold mb-2">Booking Review</h2>
-            <p>Bookings list will load here...</p>
-            <p className="text-sm text-gray-500 mt-2">Ready to add BookingList component</p>
-          </div>
-        )}
+        {currentView === 'bookings' && <BookingList />}
         
         {currentView === 'shipments' && (
           <div className="p-4 border rounded-lg">
