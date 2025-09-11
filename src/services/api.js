@@ -2,7 +2,7 @@
 import axios from 'axios';
 
 // Get API URL from environment or fallback to production
-const API_URL = process.env.API_URL || 'https://api.gcc.conship.ai/api';
+const API_URL = 'https://api.gcc.conship.ai/api';
 
 // Create axios instance with default config
 const api = axios.create({
