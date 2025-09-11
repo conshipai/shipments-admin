@@ -5,12 +5,51 @@ import ShipmentList from './components/ShipmentManagement/ShipmentList';
 import ShipmentDetail from './components/ShipmentManagement/ShipmentDetail';
 
 const App = ({ shellContext, basename }) => {
-  // Get context from props or window
-  const context = shellContext || window.shellContext || {};
+  // Initialize context with safe defaults
+  const [context, setContext] = useState(() => {
+    return shellContext || window.shellContext || {
+      user: null,
+      token: null,
+      isDarkMode: false
+    };
+  });
+
+  // Update context when shellContext prop changes or window.shellContext updates
+  useEffect(() => {
+    const updateContext = () => {
+      const newContext = shellContext || window.shellContext || {
+        user: null,
+        token: null,
+        isDarkMode: false
+      };
+      setContext(newContext);
+    };
+
+    // Listen for context updates from shell
+    window.addEventListener('shell-context-updated', updateContext);
+    
+    // Initial update
+    updateContext();
+
+    return () => {
+      window.removeEventListener('shell-context-updated', updateContext);
+    };
+  }, [shellContext]);
+
   const { user, token, isDarkMode } = context;
   
+  // Check if we have required data
+  if (!user || !token) {
+    return (
+      <div className="p-8 text-center">
+        <h2 className="text-xl font-bold text-gray-600">Loading...</h2>
+        <p className="text-sm mt-2 text-gray-500">Waiting for authentication</p>
+      </div>
+    );
+  }
+
   // Check permissions
-  const hasAccess = user && ['system_admin', 'conship_employee'].includes(user?.role);
+  const hasAccess = ['system_admin', 'conship_employee'].includes(user?.role);
   
   if (!hasAccess) {
     return (
@@ -22,7 +61,7 @@ const App = ({ shellContext, basename }) => {
     );
   }
   
-  // Use the basename properly
+  // Use the basename properly - with fallback
   const routerBasename = basename || '/app/shipments-admin';
   
   return (
