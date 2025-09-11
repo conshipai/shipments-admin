@@ -3,6 +3,9 @@ FROM node:18-alpine
 
 WORKDIR /app
 
+# Install curl for healthcheck
+RUN apk add --no-cache curl
+
 # Copy package files first
 COPY package.json package-lock.json* ./
 
@@ -28,8 +31,8 @@ RUN npm install -g serve
 
 EXPOSE 3002
 
-# Simple health check
-HEALTHCHECK --interval=30s --timeout=3s \
+# Health check with curl (now available)
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
   CMD curl -f http://localhost:3002/ || exit 1
 
 # Start the server
