@@ -35,23 +35,20 @@ module.exports = {
       name: 'shipmentsAdmin',
       filename: 'remoteEntry.js',
       exposes: {
-        './App': './src/bootstrap.js',  // Expose bootstrap instead of App directly
+        './App': './src/App',  // Point directly to App
       },
       shared: {
         react: { 
           singleton: true,
           requiredVersion: false,
-          eager: false
         },
         'react-dom': { 
           singleton: true,
           requiredVersion: false,
-          eager: false
         },
         'react-router-dom': { 
           singleton: true,
           requiredVersion: false,
-          eager: false
         },
       },
     }),
