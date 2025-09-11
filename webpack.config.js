@@ -31,11 +31,7 @@ module.exports = {
     ],
   },
   plugins: [
-    // Fix for process
-    new webpack.ProvidePlugin({
-      process: 'process/browser.js',
-    }),
-    // Module Federation - expose this app
+    // Module Federation FIRST
     new ModuleFederationPlugin({
       name: 'shipmentsAdmin',
       filename: 'remoteEntry.js',
@@ -52,11 +48,17 @@ module.exports = {
     new HtmlWebpackPlugin({
       template: './public/index.html',
     }),
+    // Define process.env
+    new webpack.DefinePlugin({
+      'process.env': JSON.stringify({
+        NODE_ENV: 'production',
+      }),
+    }),
   ],
   resolve: {
     extensions: ['.js', '.jsx', '.json'],
-    alias: {
-      process: 'process/browser.js',
+    fallback: {
+      process: false,  // Don't try to polyfill process
     },
   },
 };
