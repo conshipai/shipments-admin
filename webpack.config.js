@@ -7,19 +7,28 @@ module.exports = {
   mode: process.env.NODE_ENV || 'development',
   entry: './src/index.js',
   output: {
-    publicPath: 'auto',
+    // CRITICAL: Set the public path to the actual deployment URL
+    publicPath: process.env.PUBLIC_URL || 'https://shipments-admin.gcc.conship.ai/',
     path: path.resolve(__dirname, 'dist'),
-    filename: 'bundle.[contenthash].js',
+    filename: '[name].[contenthash].js',
+    // Clean the output directory before build
+    clean: true,
   },
   devServer: {
-    port: 3000,
+    port: 3002,
     host: '0.0.0.0',
     historyApiFallback: true,
     allowedHosts: 'all',
     headers: {
       'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, PATCH, OPTIONS',
+      'Access-Control-Allow-Headers': 'X-Requested-With, content-type, Authorization',
     },
     hot: true,
+    // Serve static files properly
+    static: {
+      directory: path.join(__dirname, 'dist'),
+    },
   },
   module: {
     rules: [
@@ -45,14 +54,11 @@ module.exports = {
   },
   plugins: [
     new ModuleFederationPlugin({
-      name: 'shell',
-      remotes: {
-        // FIX: Remove the /remoteEntry.js from the base URLs since it's added automatically
-        quotes: `quotes@${process.env.REACT_APP_QUOTES_URL || 'https://quotes.gcc.conship.ai'}/remoteEntry.js`,
-        users: `users@${process.env.REACT_APP_USERS_URL || 'https://users.gcc.conship.ai'}/remoteEntry.js`,
-        
-        // FIXED: Use the correct URL without double /remoteEntry.js
-        shipmentsAdmin: `shipmentsAdmin@${process.env.REACT_APP_SHIPMENTS_ADMIN_URL || 'https://shipments-admin.gcc.conship.ai'}/remoteEntry.js`,
+      // This app EXPOSES itself as a remote
+      name: 'shipmentsAdmin',
+      filename: 'remoteEntry.js',
+      exposes: {
+        './App': './src/App.jsx',
       },
       shared: {
         ...require('./package.json').dependencies,
@@ -76,17 +82,22 @@ module.exports = {
     }),
     new webpack.DefinePlugin({
       'process.env': JSON.stringify({
-        REACT_APP_API_URL: process.env.REACT_APP_API_URL || 'https://api.gcc.conship.ai',
-        REACT_APP_USERS_URL: process.env.REACT_APP_USERS_URL || 'https://users.gcc.conship.ai',
-        REACT_APP_QUOTES_URL: process.env.REACT_APP_QUOTES_URL || 'https://quotes.gcc.conship.ai',
-        REACT_APP_SHIPMENTS_ADMIN_URL: process.env.REACT_APP_SHIPMENTS_ADMIN_URL || 'https://shipments-admin.gcc.conship.ai',
+        NODE_ENV: process.env.NODE_ENV || 'production',
+        API_URL: process.env.API_URL || 'https://api.gcc.conship.ai',
       }),
     }),
     new HtmlWebpackPlugin({
       template: './public/index.html',
     }),
+    // Add this to provide process for browser
+    new webpack.ProvidePlugin({
+      process: 'process/browser',
+    }),
   ],
   resolve: {
     extensions: ['.js', '.jsx', '.json'],
+    fallback: {
+      process: require.resolve('process/browser'),
+    },
   },
 };
