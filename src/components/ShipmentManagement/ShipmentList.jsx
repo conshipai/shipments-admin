@@ -1,13 +1,11 @@
 // src/components/ShipmentManagement/ShipmentList.jsx
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Truck, Package, MapPin, Calendar, DollarSign } from 'lucide-react';
 import api from '../../services/api';
 
-const ShipmentList = () => {
+const ShipmentList = ({ onViewShipment }) => {  // Added onViewShipment prop
   const [shipments, setShipments] = useState([]);
   const [loading, setLoading] = useState(true);
-  const navigate = useNavigate();
   
   const shellContext = window.shellContext || {};
   const { token, isDarkMode } = shellContext;
@@ -45,15 +43,9 @@ const ShipmentList = () => {
   };
 
   return (
-    <div className={`p-6 ${isDarkMode ? 'bg-gray-900 text-white' : 'bg-white'}`}>
+    <div className={isDarkMode ? 'text-white' : ''}>
       <div className="mb-6 flex justify-between items-center">
-        <h1 className="text-2xl font-bold">Active Shipments</h1>
-        <button
-          onClick={() => navigate('/bookings')}
-          className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700"
-        >
-          Review Bookings
-        </button>
+        <h2 className="text-xl font-bold">Active Shipments</h2>
       </div>
 
       {loading ? (
@@ -63,7 +55,7 @@ const ShipmentList = () => {
           {shipments.map(shipment => (
             <div 
               key={shipment._id}
-              onClick={() => navigate(`/shipments/${shipment._id}`)}
+              onClick={() => onViewShipment(shipment._id)}  // Changed from navigate
               className={`p-4 rounded-lg border cursor-pointer hover:shadow-md transition-shadow ${
                 isDarkMode ? 'border-gray-700 bg-gray-800' : 'border-gray-200 bg-gray-50'
               }`}
