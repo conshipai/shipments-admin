@@ -1,8 +1,11 @@
 import React, { useState } from 'react';
 import BookingList from './components/BookingReview/BookingList';
+import ShipmentList from './components/ShipmentManagement/ShipmentList';
+import ShipmentDetail from './components/ShipmentManagement/ShipmentDetail';
 
 const App = ({ shellContext, basename }) => {
   const [currentView, setCurrentView] = useState('bookings');
+  const [selectedShipmentId, setSelectedShipmentId] = useState(null);
   
   // Get context from props or window
   const context = shellContext || window.shellContext || {};
@@ -23,44 +26,61 @@ const App = ({ shellContext, basename }) => {
     );
   }
   
+  // Handle navigation to shipment detail
+  const handleViewShipment = (shipmentId) => {
+    setSelectedShipmentId(shipmentId);
+    setCurrentView('shipment-detail');
+  };
+  
+  // Handle back navigation
+  const handleBack = () => {
+    setSelectedShipmentId(null);
+    setCurrentView('shipments');
+  };
+  
   return (
     <div className={`min-h-screen ${isDarkMode ? 'bg-gray-900 text-white' : 'bg-gray-50'}`}>
       <div className="p-6">
         <h1 className="text-2xl font-bold mb-4">Shipments Admin</h1>
         
-        {/* Navigation tabs */}
-        <div className="flex space-x-4 border-b mb-6">
-          <button
-            onClick={() => setCurrentView('bookings')}
-            className={`pb-2 px-4 ${
-              currentView === 'bookings' 
-                ? 'border-b-2 border-purple-600 text-purple-600' 
-                : 'text-gray-500'
-            }`}
-          >
-            Booking Review
-          </button>
-          <button
-            onClick={() => setCurrentView('shipments')}
-            className={`pb-2 px-4 ${
-              currentView === 'shipments' 
-                ? 'border-b-2 border-purple-600 text-purple-600' 
-                : 'text-gray-500'
-            }`}
-          >
-            Shipments
-          </button>
-        </div>
+        {/* Navigation tabs - hide when viewing detail */}
+        {currentView !== 'shipment-detail' && (
+          <div className="flex space-x-4 border-b mb-6">
+            <button
+              onClick={() => setCurrentView('bookings')}
+              className={`pb-2 px-4 ${
+                currentView === 'bookings' 
+                  ? 'border-b-2 border-purple-600 text-purple-600' 
+                  : 'text-gray-500'
+              }`}
+            >
+              Booking Review
+            </button>
+            <button
+              onClick={() => setCurrentView('shipments')}
+              className={`pb-2 px-4 ${
+                currentView === 'shipments' 
+                  ? 'border-b-2 border-purple-600 text-purple-600' 
+                  : 'text-gray-500'
+              }`}
+            >
+              Shipments
+            </button>
+          </div>
+        )}
         
         {/* Content based on current view */}
         {currentView === 'bookings' && <BookingList />}
         
         {currentView === 'shipments' && (
-          <div className="p-4 border rounded-lg">
-            <h2 className="text-lg font-semibold mb-2">Shipment Management</h2>
-            <p>Shipments list will load here...</p>
-            <p className="text-sm text-gray-500 mt-2">Ready to add ShipmentList component</p>
-          </div>
+          <ShipmentList onViewShipment={handleViewShipment} />
+        )}
+        
+        {currentView === 'shipment-detail' && selectedShipmentId && (
+          <ShipmentDetail 
+            shipmentId={selectedShipmentId} 
+            onBack={handleBack}
+          />
         )}
       </div>
     </div>
