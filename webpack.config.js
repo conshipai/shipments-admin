@@ -4,31 +4,13 @@ const webpack = require('webpack');
 const path = require('path');
 
 module.exports = {
-  mode: process.env.NODE_ENV || 'development',
+  mode: 'production',
   entry: './src/index.js',
   output: {
-    // CRITICAL: Set the public path to the actual deployment URL
-    publicPath: process.env.PUBLIC_URL || 'https://shipments-admin.gcc.conship.ai/',
+    publicPath: 'auto',
     path: path.resolve(__dirname, 'dist'),
     filename: '[name].[contenthash].js',
-    // Clean the output directory before build
     clean: true,
-  },
-  devServer: {
-    port: 3002,
-    host: '0.0.0.0',
-    historyApiFallback: true,
-    allowedHosts: 'all',
-    headers: {
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, PATCH, OPTIONS',
-      'Access-Control-Allow-Headers': 'X-Requested-With, content-type, Authorization',
-    },
-    hot: true,
-    // Serve static files properly
-    static: {
-      directory: path.join(__dirname, 'dist'),
-    },
   },
   module: {
     rules: [
@@ -46,50 +28,27 @@ module.exports = {
         test: /\.css$/,
         use: ['style-loader', 'css-loader', 'postcss-loader'],
       },
-      {
-        test: /\.(png|jpg|jpeg|gif|svg)$/,
-        type: 'asset/resource',
-      },
     ],
   },
   plugins: [
-    // IMPORTANT: ProvidePlugin must come BEFORE ModuleFederationPlugin
+    // Fix for process
     new webpack.ProvidePlugin({
       process: 'process/browser.js',
     }),
+    // Module Federation - expose this app
     new ModuleFederationPlugin({
-      // This app EXPOSES itself as a remote
       name: 'shipmentsAdmin',
       filename: 'remoteEntry.js',
       exposes: {
         './App': './src/App.jsx',
       },
       shared: {
-        ...require('./package.json').dependencies,
-        react: {
-          singleton: true,
-          requiredVersion: require('./package.json').dependencies.react,
-        },
-        'react-dom': {
-          singleton: true,
-          requiredVersion: require('./package.json').dependencies['react-dom'],
-        },
-        'react-router-dom': {
-          singleton: true,
-          requiredVersion: require('./package.json').dependencies['react-router-dom'],
-        },
-        axios: {
-          singleton: true,
-          requiredVersion: require('./package.json').dependencies.axios,
-        },
+        react: { singleton: true },
+        'react-dom': { singleton: true },
+        'react-router-dom': { singleton: true },
       },
     }),
-    new webpack.DefinePlugin({
-      'process.env': JSON.stringify({
-        NODE_ENV: process.env.NODE_ENV || 'production',
-        API_URL: process.env.API_URL || 'https://api.gcc.conship.ai',
-      }),
-    }),
+    // HTML template
     new HtmlWebpackPlugin({
       template: './public/index.html',
     }),
@@ -98,9 +57,6 @@ module.exports = {
     extensions: ['.js', '.jsx', '.json'],
     alias: {
       process: 'process/browser.js',
-    },
-    fallback: {
-      process: require.resolve('process/browser.js'),
     },
   },
 };
