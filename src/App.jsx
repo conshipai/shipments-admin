@@ -1,6 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 
 const App = ({ shellContext, basename }) => {
+  const [currentView, setCurrentView] = useState('bookings');
+  
   // Get context from props or window
   const context = shellContext || window.shellContext || {};
   const { user, token, isDarkMode } = context;
@@ -20,30 +22,51 @@ const App = ({ shellContext, basename }) => {
     );
   }
   
-  // For now, just show a working interface
   return (
     <div className={`min-h-screen ${isDarkMode ? 'bg-gray-900 text-white' : 'bg-gray-50'}`}>
       <div className="p-6">
         <h1 className="text-2xl font-bold mb-4">Shipments Admin</h1>
         
-        <div className="grid gap-4">
-          <div className="p-4 border rounded-lg">
-            <h2 className="text-lg font-semibold mb-2">✅ Module Federation: Working</h2>
-            <p>The app is loading successfully from the remote.</p>
-          </div>
-          
-          <div className="p-4 border rounded-lg">
-            <h2 className="text-lg font-semibold mb-2">✅ Authentication: Working</h2>
-            <p>User: {user?.email}</p>
-            <p>Role: {user?.role}</p>
-            <p>Token: {token ? 'Present' : 'Missing'}</p>
-          </div>
-          
-          <div className="p-4 border rounded-lg">
-            <h2 className="text-lg font-semibold mb-2">Next Steps</h2>
-            <p>Once this is working, we'll add the routing and components back.</p>
-          </div>
+        {/* Navigation tabs */}
+        <div className="flex space-x-4 border-b mb-6">
+          <button
+            onClick={() => setCurrentView('bookings')}
+            className={`pb-2 px-4 ${
+              currentView === 'bookings' 
+                ? 'border-b-2 border-purple-600 text-purple-600' 
+                : 'text-gray-500'
+            }`}
+          >
+            Booking Review
+          </button>
+          <button
+            onClick={() => setCurrentView('shipments')}
+            className={`pb-2 px-4 ${
+              currentView === 'shipments' 
+                ? 'border-b-2 border-purple-600 text-purple-600' 
+                : 'text-gray-500'
+            }`}
+          >
+            Shipments
+          </button>
         </div>
+        
+        {/* Content based on current view */}
+        {currentView === 'bookings' && (
+          <div className="p-4 border rounded-lg">
+            <h2 className="text-lg font-semibold mb-2">Booking Review</h2>
+            <p>Bookings list will load here...</p>
+            <p className="text-sm text-gray-500 mt-2">Ready to add BookingList component</p>
+          </div>
+        )}
+        
+        {currentView === 'shipments' && (
+          <div className="p-4 border rounded-lg">
+            <h2 className="text-lg font-semibold mb-2">Shipment Management</h2>
+            <p>Shipments list will load here...</p>
+            <p className="text-sm text-gray-500 mt-2">Ready to add ShipmentList component</p>
+          </div>
+        )}
       </div>
     </div>
   );
