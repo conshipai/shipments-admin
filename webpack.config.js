@@ -53,6 +53,10 @@ module.exports = {
     ],
   },
   plugins: [
+    // IMPORTANT: ProvidePlugin must come BEFORE ModuleFederationPlugin
+    new webpack.ProvidePlugin({
+      process: 'process/browser.js',
+    }),
     new ModuleFederationPlugin({
       // This app EXPOSES itself as a remote
       name: 'shipmentsAdmin',
@@ -89,15 +93,14 @@ module.exports = {
     new HtmlWebpackPlugin({
       template: './public/index.html',
     }),
-    // Add this to provide process for browser
-    new webpack.ProvidePlugin({
-      process: 'process/browser',
-    }),
   ],
   resolve: {
     extensions: ['.js', '.jsx', '.json'],
+    alias: {
+      process: 'process/browser.js',
+    },
     fallback: {
-      process: require.resolve('process/browser'),
+      process: require.resolve('process/browser.js'),
     },
   },
 };
