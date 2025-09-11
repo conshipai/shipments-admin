@@ -1,5 +1,4 @@
 import React from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
 
 const App = ({ shellContext, basename }) => {
   // Get context from props or window
@@ -21,29 +20,31 @@ const App = ({ shellContext, basename }) => {
     );
   }
   
+  // For now, just show a working interface
   return (
-    <div className={`min-h-screen ${isDarkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
-      <Routes>
-        <Route path="/" element={<Navigate to="/bookings" replace />} />
-        <Route path="/bookings" element={
-          <div className="p-6">
-            <h1 className="text-2xl font-bold">Bookings Page (Test)</h1>
-            <p>If you see this, routing is working!</p>
+    <div className={`min-h-screen ${isDarkMode ? 'bg-gray-900 text-white' : 'bg-gray-50'}`}>
+      <div className="p-6">
+        <h1 className="text-2xl font-bold mb-4">Shipments Admin</h1>
+        
+        <div className="grid gap-4">
+          <div className="p-4 border rounded-lg">
+            <h2 className="text-lg font-semibold mb-2">✅ Module Federation: Working</h2>
+            <p>The app is loading successfully from the remote.</p>
           </div>
-        } />
-        <Route path="/shipments" element={
-          <div className="p-6">
-            <h1 className="text-2xl font-bold">Shipments Page (Test)</h1>
-            <p>Shipments list will go here</p>
+          
+          <div className="p-4 border rounded-lg">
+            <h2 className="text-lg font-semibold mb-2">✅ Authentication: Working</h2>
+            <p>User: {user?.email}</p>
+            <p>Role: {user?.role}</p>
+            <p>Token: {token ? 'Present' : 'Missing'}</p>
           </div>
-        } />
-        <Route path="/shipments/:id" element={
-          <div className="p-6">
-            <h1 className="text-2xl font-bold">Shipment Detail (Test)</h1>
-            <p>Detail view will go here</p>
+          
+          <div className="p-4 border rounded-lg">
+            <h2 className="text-lg font-semibold mb-2">Next Steps</h2>
+            <p>Once this is working, we'll add the routing and components back.</p>
           </div>
-        } />
-      </Routes>
+        </div>
+      </div>
     </div>
   );
 };
