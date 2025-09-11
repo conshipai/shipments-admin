@@ -16,35 +16,18 @@ const api = axios.create({
 // Request interceptor to add auth token
 api.interceptors.request.use(
   (config) => {
-    // Try multiple sources for the token
-    let token = null;
-    
-    // 1. Try shellContext from props (passed through components)
-    const shellContext = window.shellContext;
-    if (shellContext?.token) {
-      token = shellContext.token;
-      console.log('Using token from window.shellContext');
-    }
-    
-    // 2. Try localStorage as fallback
-    if (!token) {
-      token = localStorage.getItem('auth_token');
-      if (token) {
-        console.log('Using token from localStorage');
-      }
-    }
-    
-    // 3. Debug log
-    console.log('API request:', {
-      url: config.url,
-      hasToken: !!token,
-      tokenPreview: token ? `${token.substring(0, 20)}...` : 'no token'
-    });
+    // Get token from localStorage (where the shell stores it)
+    const token = localStorage.getItem('auth_token');
     
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
+      console.log('API request with token:', {
+        url: config.url,
+        hasToken: true,
+        tokenPreview: token.substring(0, 20) + '...'
+      });
     } else {
-      console.warn('No token found for API request!');
+      console.warn('No token found in localStorage for API request:', config.url);
     }
     
     return config;
@@ -57,6 +40,7 @@ api.interceptors.request.use(
 // Response interceptor for error handling
 api.interceptors.response.use(
   (response) => {
+    console.log('API response success:', response.config.url);
     return response;
   },
   (error) => {
@@ -70,6 +54,8 @@ api.interceptors.response.use(
       
       if (error.response.status === 401) {
         console.error('Authentication failed - token may be invalid or expired');
+        // Optionally, redirect to login
+        // window.location.href = '/login';
       }
     } else if (error.request) {
       console.error('Network error - no response received');
