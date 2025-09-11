@@ -6,10 +6,8 @@ WORKDIR /app
 # Copy package files
 COPY package*.json ./
 
-# Install dependencies including process package
+# Install dependencies
 RUN npm install
-# Install process package if webpack needs it
-RUN npm install --save-dev process || true
 
 # Copy all source files
 COPY . .
@@ -17,21 +15,41 @@ COPY . .
 # Build the application
 RUN npm run build
 
-# Stage 2: Production
-FROM node:18-alpine
+# Stage 2: Production with nginx (better for Module Federation)
+FROM nginx:alpine
 
-WORKDIR /app
+# Copy custom nginx config
+COPY --from=builder /app/dist /usr/share/nginx/html
 
-# Install serve globally
-RUN npm install -g serve
-
-# Copy built files from builder
-COPY --from=builder /app/dist ./dist
+# Add nginx configuration for proper routing
+RUN echo 'server { \
+    listen 3002; \
+    root /usr/share/nginx/html; \
+    index index.html; \
+    \
+    # CRITICAL: Serve remoteEntry.js with correct headers \
+    location = /remoteEntry.js { \
+        add_header Access-Control-Allow-Origin *; \
+        add_header Cache-Control "no-cache"; \
+        try_files $uri =404; \
+    } \
+    \
+    # Serve other static files \
+    location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg)$ { \
+        add_header Access-Control-Allow-Origin *; \
+        expires 1y; \
+        add_header Cache-Control "public, immutable"; \
+    } \
+    \
+    # Handle client-side routing \
+    location / { \
+        try_files $uri $uri/ /index.html; \
+    } \
+}' > /etc/nginx/conf.d/default.conf
 
 EXPOSE 3002
 
-# Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD node -e "require('http').get('http://localhost:3002', (res) => { process.exit(res.statusCode === 200 ? 0 : 1); })"
+  CMD wget --no-verbose --tries=1 --spider http://localhost:3002/remoteEntry.js || exit 1
 
-CMD ["serve", "-s", "dist", "-l", "3002", "--cors"]
+CMD ["nginx", "-g", "daemon off;"]
