@@ -6,8 +6,10 @@ WORKDIR /app
 # Copy package files
 COPY package*.json ./
 
-# Use npm install instead of npm ci since we don't have package-lock.json
+# Install dependencies including process package
 RUN npm install
+# Install process package if webpack needs it
+RUN npm install --save-dev process || true
 
 # Copy all source files
 COPY . .
