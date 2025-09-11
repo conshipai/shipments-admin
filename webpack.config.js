@@ -1,93 +1,92 @@
-// webpack.config.js - COMPLETE WORKING VERSION
 const HtmlWebpackPlugin = require('html-webpack-plugin');
-const ModuleFederationPlugin = require('webpack/lib/container/ModuleFederationPlugin');
+const { ModuleFederationPlugin } = require('webpack').container;
 const webpack = require('webpack');
 const path = require('path');
 
 module.exports = {
-  mode: 'production',
+  mode: process.env.NODE_ENV || 'development',
   entry: './src/index.js',
   output: {
-    filename: '[name].js',
+    publicPath: 'auto',
     path: path.resolve(__dirname, 'dist'),
-    publicPath: 'https://shipments-admin.gcc.conship.ai/',
+    filename: 'bundle.[contenthash].js',
   },
-  resolve: {
-    extensions: ['.jsx', '.js'],
-    fallback: {
-      // Add polyfills for Node.js core modules
-      "process": require.resolve("process/browser")
-    }
+  devServer: {
+    port: 3000,
+    host: '0.0.0.0',
+    historyApiFallback: true,
+    allowedHosts: 'all',
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+    },
+    hot: true,
   },
   module: {
     rules: [
       {
-        test: /\.jsx?$/,
+        test: /\.(js|jsx)$/,
         exclude: /node_modules/,
         use: {
           loader: 'babel-loader',
           options: {
-            presets: ['@babel/preset-react', '@babel/preset-env']
-          }
-        }
+            presets: ['@babel/preset-react', '@babel/preset-env'],
+          },
+        },
       },
       {
         test: /\.css$/,
-        use: ['style-loader', 'css-loader', 'postcss-loader']
+        use: ['style-loader', 'css-loader', 'postcss-loader'],
       },
       {
-        test: /\.(png|jpg|jpeg|gif|svg|webp|ico)$/i,
+        test: /\.(png|jpg|jpeg|gif|svg)$/,
         type: 'asset/resource',
-        generator: {
-          filename: 'images/[name].[hash][ext]'
-        }
-      }
-    ]
+      },
+    ],
   },
   plugins: [
     new ModuleFederationPlugin({
-      name: 'shipmentsAdmin',
-      filename: 'remoteEntry.js',
-      exposes: {
-        './App': './src/App'
+      name: 'shell',
+      remotes: {
+        // FIX: Remove the /remoteEntry.js from the base URLs since it's added automatically
+        quotes: `quotes@${process.env.REACT_APP_QUOTES_URL || 'https://quotes.gcc.conship.ai'}/remoteEntry.js`,
+        users: `users@${process.env.REACT_APP_USERS_URL || 'https://users.gcc.conship.ai'}/remoteEntry.js`,
+        
+        // FIXED: Use the correct URL without double /remoteEntry.js
+        shipmentsAdmin: `shipmentsAdmin@${process.env.REACT_APP_SHIPMENTS_ADMIN_URL || 'https://shipments-admin.gcc.conship.ai'}/remoteEntry.js`,
       },
       shared: {
-        react: { 
+        ...require('./package.json').dependencies,
+        react: {
           singleton: true,
-          requiredVersion: '^18.0.0'
+          requiredVersion: require('./package.json').dependencies.react,
         },
-        'react-dom': { 
+        'react-dom': {
           singleton: true,
-          requiredVersion: '^18.0.0'
+          requiredVersion: require('./package.json').dependencies['react-dom'],
         },
-        'react-router-dom': { 
+        'react-router-dom': {
           singleton: true,
-          requiredVersion: '^6.0.0'
+          requiredVersion: require('./package.json').dependencies['react-router-dom'],
         },
         axios: {
-          singleton: true
+          singleton: true,
+          requiredVersion: require('./package.json').dependencies.axios,
         },
-        'lucide-react': {
-          singleton: true
-        }
-      }
+      },
     }),
-    
-    // FIX FOR PROCESS ERROR - Define environment variables
     new webpack.DefinePlugin({
-      'process.env.NODE_ENV': JSON.stringify('production'),
-      'process.env.API_URL': JSON.stringify('https://api.gcc.conship.ai'),
-      'process.env.PUBLIC_URL': JSON.stringify('https://shipments-admin.gcc.conship.ai'),
-      'process.env.SHELL_URL': JSON.stringify('https://shell.gcc.conship.ai'),
+      'process.env': JSON.stringify({
+        REACT_APP_API_URL: process.env.REACT_APP_API_URL || 'https://api.gcc.conship.ai',
+        REACT_APP_USERS_URL: process.env.REACT_APP_USERS_URL || 'https://users.gcc.conship.ai',
+        REACT_APP_QUOTES_URL: process.env.REACT_APP_QUOTES_URL || 'https://quotes.gcc.conship.ai',
+        REACT_APP_SHIPMENTS_ADMIN_URL: process.env.REACT_APP_SHIPMENTS_ADMIN_URL || 'https://shipments-admin.gcc.conship.ai',
+      }),
     }),
-    
-    // Provide process globally
-    new webpack.ProvidePlugin({
-      process: 'process/browser',
-    }),
-    
     new HtmlWebpackPlugin({
-      template: './public/index.html'
-    })
-  ]
+      template: './public/index.html',
+    }),
+  ],
+  resolve: {
+    extensions: ['.js', '.jsx', '.json'],
+  },
 };
