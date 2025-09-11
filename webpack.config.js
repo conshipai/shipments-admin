@@ -7,7 +7,7 @@ module.exports = {
   mode: 'production',
   entry: './src/index.js',
   output: {
-    publicPath: 'auto',
+    publicPath: 'https://shipments-admin.gcc.conship.ai/',
     path: path.resolve(__dirname, 'dist'),
     filename: '[name].[contenthash].js',
     clean: true,
@@ -31,24 +31,33 @@ module.exports = {
     ],
   },
   plugins: [
-    // Module Federation FIRST
     new ModuleFederationPlugin({
       name: 'shipmentsAdmin',
       filename: 'remoteEntry.js',
       exposes: {
-        './App': './src/App.jsx',
+        './App': './src/bootstrap.js',  // Expose bootstrap instead of App directly
       },
       shared: {
-        react: { singleton: true },
-        'react-dom': { singleton: true },
-        'react-router-dom': { singleton: true },
+        react: { 
+          singleton: true,
+          requiredVersion: false,
+          eager: false
+        },
+        'react-dom': { 
+          singleton: true,
+          requiredVersion: false,
+          eager: false
+        },
+        'react-router-dom': { 
+          singleton: true,
+          requiredVersion: false,
+          eager: false
+        },
       },
     }),
-    // HTML template
     new HtmlWebpackPlugin({
       template: './public/index.html',
     }),
-    // Define process.env
     new webpack.DefinePlugin({
       'process.env': JSON.stringify({
         NODE_ENV: 'production',
@@ -57,8 +66,5 @@ module.exports = {
   ],
   resolve: {
     extensions: ['.js', '.jsx', '.json'],
-    fallback: {
-      process: false,  // Don't try to polyfill process
-    },
   },
 };
