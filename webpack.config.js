@@ -1,3 +1,4 @@
+// webpack.config.js - COMPLETE WORKING VERSION
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const ModuleFederationPlugin = require('webpack/lib/container/ModuleFederationPlugin');
 const webpack = require('webpack');
@@ -13,6 +14,10 @@ module.exports = {
   },
   resolve: {
     extensions: ['.jsx', '.js'],
+    fallback: {
+      // Add polyfills for Node.js core modules
+      "process": require.resolve("process/browser")
+    }
   },
   module: {
     rules: [
@@ -68,17 +73,17 @@ module.exports = {
       }
     }),
     
-    // FIX: Define process.env variables for the browser
+    // FIX FOR PROCESS ERROR - Define environment variables
     new webpack.DefinePlugin({
-      'process.env': JSON.stringify({
-        NODE_ENV: 'production',
-        API_URL: 'https://api.gcc.conship.ai'
-      })
+      'process.env.NODE_ENV': JSON.stringify('production'),
+      'process.env.API_URL': JSON.stringify('https://api.gcc.conship.ai'),
+      'process.env.PUBLIC_URL': JSON.stringify('https://shipments-admin.gcc.conship.ai'),
+      'process.env.SHELL_URL': JSON.stringify('https://shell.gcc.conship.ai'),
     }),
     
-    // Alternative: Provide process polyfill
+    // Provide process globally
     new webpack.ProvidePlugin({
-      process: 'process/browser'
+      process: 'process/browser',
     }),
     
     new HtmlWebpackPlugin({
