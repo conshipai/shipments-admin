@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 
 const App = ({ shellContext, basename }) => {
   // Get context from props or window
@@ -21,35 +21,30 @@ const App = ({ shellContext, basename }) => {
     );
   }
   
-  // Use the basename properly
-  const routerBasename = basename || '/app/shipments-admin';
-  
   return (
-    <BrowserRouter basename={routerBasename}>
-      <div className={`min-h-screen ${isDarkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
-        <Routes>
-          <Route path="/" element={<Navigate to="/bookings" replace />} />
-          <Route path="/bookings" element={
-            <div className="p-6">
-              <h1 className="text-2xl font-bold">Bookings Page (Test)</h1>
-              <p>If you see this, routing is working!</p>
-            </div>
-          } />
-          <Route path="/shipments" element={
-            <div className="p-6">
-              <h1 className="text-2xl font-bold">Shipments Page (Test)</h1>
-              <p>Shipments list will go here</p>
-            </div>
-          } />
-          <Route path="/shipments/:id" element={
-            <div className="p-6">
-              <h1 className="text-2xl font-bold">Shipment Detail (Test)</h1>
-              <p>Detail view will go here</p>
-            </div>
-          } />
-        </Routes>
-      </div>
-    </BrowserRouter>
+    <div className={`min-h-screen ${isDarkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
+      <Routes>
+        <Route path="/" element={<Navigate to="/bookings" replace />} />
+        <Route path="/bookings" element={
+          <div className="p-6">
+            <h1 className="text-2xl font-bold">Bookings Page (Test)</h1>
+            <p>If you see this, routing is working!</p>
+          </div>
+        } />
+        <Route path="/shipments" element={
+          <div className="p-6">
+            <h1 className="text-2xl font-bold">Shipments Page (Test)</h1>
+            <p>Shipments list will go here</p>
+          </div>
+        } />
+        <Route path="/shipments/:id" element={
+          <div className="p-6">
+            <h1 className="text-2xl font-bold">Shipment Detail (Test)</h1>
+            <p>Detail view will go here</p>
+          </div>
+        } />
+      </Routes>
+    </div>
   );
 };
 
