@@ -1,7 +1,7 @@
 // src/services/api.js
 import axios from 'axios';
 
-// Get API URL from environment or fallback to production
+// Get API URL - hardcoded for production
 const API_URL = 'https://api.gcc.conship.ai/api';
 
 // Create axios instance with default config
@@ -10,7 +10,7 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
-  timeout: 10000, // 10 seconds timeout
+  timeout: 10000,
 });
 
 // Request interceptor to add auth token
@@ -36,24 +36,7 @@ api.interceptors.response.use(
   (error) => {
     // Handle common errors
     if (error.response) {
-      switch (error.response.status) {
-        case 401:
-          // Unauthorized - token might be expired
-          console.error('Authentication failed');
-          // You could trigger a re-login here
-          break;
-        case 403:
-          console.error('Access denied');
-          break;
-        case 404:
-          console.error('Resource not found');
-          break;
-        case 500:
-          console.error('Server error');
-          break;
-        default:
-          console.error('API Error:', error.response.data?.message || error.message);
-      }
+      console.error('API Error:', error.response.data?.message || error.message);
     } else if (error.request) {
       console.error('Network error - no response received');
     } else {
